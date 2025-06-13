@@ -13,7 +13,9 @@ import java.util.List;
 @Getter
 @Setter
 public class ItemFormDto {
+
     private Long id;
+
     @NotBlank(message = "상품명은 필수 입력값입니다.")
     private String itemNm;
 
@@ -24,7 +26,7 @@ public class ItemFormDto {
     private String itemDetail;
 
     @NotNull(message = "재고는 필수 입력값입니다.")
-    private String stockNumber;
+    private Integer stockNumber;
 
     private ItemSellStatus itemSellStatus;
 
