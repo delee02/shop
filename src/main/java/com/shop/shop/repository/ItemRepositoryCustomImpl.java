@@ -1,11 +1,15 @@
 package com.shop.shop.repository;
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shop.shop.constant.ItemSellStatus;
 import com.shop.shop.dto.ItemSearchDto;
+import com.shop.shop.dto.MainItemDto;
+import com.shop.shop.dto.QMainItemDto;
 import com.shop.shop.entity.Item;
 import com.shop.shop.entity.QItem;
+import com.shop.shop.entity.QItemImg;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -54,6 +58,10 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
         return null;
     }
 
+  private BooleanExpression itemNmLike(String searchQuery) {
+        return StringUtils.isEmpty(searchQuery) ? null : QItem.item.itemNM.like("%" + searchQuery + "%");
+    }
+
     @Override
     public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
         QueryResults<Item> results = queryFactory.selectFrom(QItem.item)
@@ -66,5 +74,24 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
         long total = results.getTotal();
         return new PageImpl<>(content, pageable, total);
     }
+
+    @Override
+    public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
+        QItem item = QItem.item;
+        QItemImg itemImg = QItemImg.itemImg;
+        //select i.id, id.itemNm, i.itemDetail, im.itemImg, i.price from item i, itemimg im join i.id = im.itemid
+        //where im.repImgYn="Y" and i.itemNm like %searchQuery% order by i.id desc
+        //QMainItemDto @QueryProjection을 허용하면 DTO 바로 조회가능
+        QueryResults<MainItemDto> results = queryFactory.select(new QMainItemDto(item.id, item.itemNM, item.itemDetail,
+                                                itemImg.imgUrl,item.price))
+                .from(itemImg).join(itemImg.item, item).where(itemImg.repImgYn.eq("Y"))
+                .where(itemNmLike(itemSearchDto.getSearchQuery()))
+                .orderBy(item.id.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetchResults();
+        List<MainItemDto> content = results.getResults();
+        long total = results.getTotal();
+        return new PageImpl<>(content, pageable, total);
+    }
+
+
 
 }

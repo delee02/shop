@@ -57,7 +57,7 @@ public class ItemController {
         return "redirect:/";
     }
 
-    //상품디테일, 상품 수정페이지 보여주기
+    //상품 수정페이지 보여주기
     @GetMapping(value = "/admin/item/{itemId}")
     public String itemDtl(@PathVariable("itemId") Long itemId, Model model) {
         try {
@@ -91,7 +91,7 @@ public class ItemController {
         return "redirect:/";
     }
 
-    //item list (paging, after searching, list)
+    //item list (paging/ after searching, list)
     /*
     value가 두개인 이유
     1.네비게이션에서 상품관리 클릭하면 나오는거
@@ -111,6 +111,13 @@ public class ItemController {
         model.addAttribute("itemSearchDto", itemSearchDto);
         model.addAttribute("maxPage", 5);
         return "item/itemMng";
+    }
+
+    @GetMapping(value = "/item/{itemId}")
+    public String itemDtl(Model model, @PathVariable("itemId")Long itemId){
+        ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
+        model.addAttribute("item", itemFormDto);
+        return "item/itemDtl";
     }
 
 }
